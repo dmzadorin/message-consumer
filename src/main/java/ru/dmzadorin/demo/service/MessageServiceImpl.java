@@ -43,8 +43,8 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public Long getKafkaOffset() {
-        return messageRepository.getKafkaOffset();
+    public Long getPartitionOffset(int partition) {
+        return messageRepository.getPartitionOffset(partition);
     }
 
     private void saveMessagesToQueue(Collection<EnrichedMessage> enrichedMessages) {

@@ -43,10 +43,12 @@ public class JooqMessageRepository implements MessageRepository {
     }
 
     @Override
-    public Long getKafkaOffset() {
+    public Long getPartitionOffset(int partition) {
         try {
             return dsl.select(DSL.max(MESSAGE_TABLE.KAFKA_OFFSET).as("maxOffset"))
-                    .from(MESSAGE_TABLE).fetchOne("maxOffset", Long.class);
+                    .from(MESSAGE_TABLE)
+                    .where(MESSAGE_TABLE.KAFKA_PARTITION.eq(partition))
+                    .fetchOne("maxOffset", Long.class);
         } catch (RuntimeException ex) {
             logger.error("Failed to get kafka offset, cause: {}", ex.toString());
             return null;
@@ -58,6 +60,7 @@ public class JooqMessageRepository implements MessageRepository {
                 .set(MESSAGE_TABLE.MESSAGE_ID, message.getMessageId())
                 .set(MESSAGE_TABLE.PAYLOAD, message.getPayload())
                 .set(MESSAGE_TABLE.TIMESTAMP, DSL.currentTimestamp())
+                .set(MESSAGE_TABLE.KAFKA_PARTITION, message.getPartition())
                 .set(MESSAGE_TABLE.KAFKA_OFFSET, message.getOffset())
                 ;
     }

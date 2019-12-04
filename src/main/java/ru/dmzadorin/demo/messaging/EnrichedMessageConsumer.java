@@ -37,26 +37,28 @@ public class EnrichedMessageConsumer implements ConsumerSeekAware {
     }
 
     @Override
-    public void registerSeekCallback(ConsumerSeekCallback callback) {
-
+    public void onPartitionsAssigned(Map<TopicPartition, Long> assignments, ConsumerSeekCallback callback) {
+        assignments.forEach((partition, offset) -> seekPartition(callback, partition, offset));
     }
 
-    @Override
-    public void onPartitionsAssigned(
-            Map<TopicPartition, Long> assignments,
-            ConsumerSeekCallback callback
-    ) {
-        var offset = messageService.getKafkaOffset();
+    private void seekPartition(ConsumerSeekCallback callback, TopicPartition partition, Long currentOffset) {
+        var offset = messageService.getPartitionOffset(partition.partition());
         if (offset != null) {
             //Need to shift offset + 1 since offset from db stores offset from last saved message
             var latestOffset = offset + 1;
-            logger.info("Got kafka offset '{}' from db, rewinding enriched message consumer to offset + 1: {}",
-                    offset, latestOffset);
-            assignments.keySet().forEach(partition ->
-                    callback.seek(enrichedMessagesTopic, partition.partition(), latestOffset)
-            );
+            if (currentOffset != null && currentOffset == latestOffset) {
+                logger.info("No need to rewind message listener for partition {}, " +
+                        "latest offset from db is equal to current offset", partition
+                );
+            } else {
+                logger.info("Offset '{}' for partition '{}' from db is not equal to current offset: '{}'," +
+                                " rewinding listener",
+                        latestOffset, partition, currentOffset);
+                callback.seek(enrichedMessagesTopic, partition.partition(), latestOffset);
+            }
         } else {
-            logger.info("Kafka offset is empty, no need to rewind enriched message consumer");
+            logger.info("Offset for partition '{}' is empty in db, no need to rewind listener offset",
+                    partition);
         }
     }
 
@@ -67,6 +69,7 @@ public class EnrichedMessageConsumer implements ConsumerSeekAware {
     )
     public void acceptEnrichMessages(
             @Payload List<Message> messages,
+            @Header(KafkaHeaders.RECEIVED_PARTITION_ID) List<Integer> partitions,
             @Header(KafkaHeaders.OFFSET) List<Long> offsets,
             Acknowledgment acknowledgment
     ) {
@@ -77,8 +80,9 @@ public class EnrichedMessageConsumer implements ConsumerSeekAware {
         for (int i = 0; i < messages.size(); i++) {
             var message = messages.get(i);
             var offset = offsets.get(i);
+            var partition = partitions.get(i);
             enrichedMessages.add(
-                    new EnrichedMessage(message.getMessageId(), message.getPayload(), offset)
+                    new EnrichedMessage(message.getMessageId(), message.getPayload(), partition, offset)
             );
         }
         messageService.saveMessagePayload(enrichedMessages);

@@ -9,5 +9,5 @@ public interface MessageRepository {
 
     void saveBatch(Collection<EnrichedMessage> messages);
 
-    Long getKafkaOffset();
+    Long getPartitionOffset(int partition);
 }

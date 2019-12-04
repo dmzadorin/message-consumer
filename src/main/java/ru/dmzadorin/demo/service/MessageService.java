@@ -7,5 +7,5 @@ import java.util.Collection;
 public interface MessageService {
     void saveMessagePayload(Collection<EnrichedMessage> enrichedMessages);
 
-    Long getKafkaOffset();
+    Long getPartitionOffset(int partition);
 }
