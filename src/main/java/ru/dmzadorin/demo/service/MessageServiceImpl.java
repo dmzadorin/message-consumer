@@ -73,10 +73,8 @@ public class MessageServiceImpl implements MessageService {
         messageQueue.drainTo(messages);
         logger.info("Got {} messages from queue, saving to db", messages.size());
         if (!messages.isEmpty()) {
-//            if (messages.size() > 4) {
                 messageRepository.saveBatch(messages);
                 logger.info("Batch with {} messages successfully saved to db", messages.size());
-//            }
         }
     }
 }

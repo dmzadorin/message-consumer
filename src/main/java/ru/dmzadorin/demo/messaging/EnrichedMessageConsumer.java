@@ -37,6 +37,11 @@ public class EnrichedMessageConsumer implements ConsumerSeekAware {
     }
 
     @Override
+    public void registerSeekCallback(ConsumerSeekCallback callback) {
+
+    }
+
+    @Override
     public void onPartitionsAssigned(
             Map<TopicPartition, Long> assignments,
             ConsumerSeekCallback callback

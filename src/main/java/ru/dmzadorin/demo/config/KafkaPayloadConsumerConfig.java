@@ -44,7 +44,6 @@ public class KafkaPayloadConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<Long, MessagesPayload> payloadMessageContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<Long, MessagesPayload> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConcurrency(3);
         factory.setConsumerFactory(consumerFactory());
         factory.setMessageConverter(messageConverter);
         return factory;
