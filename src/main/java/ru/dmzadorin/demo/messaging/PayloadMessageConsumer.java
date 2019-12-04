@@ -18,16 +18,16 @@ public class PayloadMessageConsumer implements ConsumerSeekAware {
 
     private final ObjectMapper objectMapper;
     private final String enrichedMessagesTopic;
-    private final KafkaTemplate<Long, String> flatMessagesTemplate;
+    private final KafkaTemplate<Long, String> enrichedMessagesTemplate;
 
     public PayloadMessageConsumer(
             ObjectMapper objectMapper,
             String enrichedMessagesTopic,
-            KafkaTemplate<Long, String> flatMessagesTemplate
+            KafkaTemplate<Long, String> enrichedMessagesTemplate
     ) {
         this.objectMapper = objectMapper;
         this.enrichedMessagesTopic = enrichedMessagesTopic;
-        this.flatMessagesTemplate = flatMessagesTemplate;
+        this.enrichedMessagesTemplate = enrichedMessagesTemplate;
     }
 
     @KafkaListener(
@@ -49,7 +49,7 @@ public class PayloadMessageConsumer implements ConsumerSeekAware {
                     .collect(Collectors.toList());
 
             filtered.forEach(message -> {
-                flatMessagesTemplate.send(
+                enrichedMessagesTemplate.send(
                         enrichedMessagesTopic,
                         message.getMessageId(),
                         JsonUtil.writeValueAsString(message, objectMapper)
