@@ -3,6 +3,7 @@ package ru.dmzadorin.demo.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import ru.dmzadorin.demo.db.MessageRepository;
 import ru.dmzadorin.demo.service.MessageService;
 import ru.dmzadorin.demo.service.MessageServiceImpl;
@@ -29,6 +30,7 @@ public class ServiceConfig {
 
     @Bean
     ScheduledExecutorService messageScheduledExecutor(@Value("${messages.poolSize}") int poolSize) {
-        return Executors.newScheduledThreadPool(poolSize);
+        var threadFactory = new CustomizableThreadFactory("message-poller-");
+        return Executors.newScheduledThreadPool(poolSize, threadFactory);
     }
 }
