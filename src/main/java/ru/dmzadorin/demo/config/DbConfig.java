@@ -10,8 +10,8 @@ import org.springframework.boot.autoconfigure.jooq.JooqExceptionTranslator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
+import ru.dmzadorin.demo.db.MessageRepository;
 import ru.dmzadorin.demo.db.JooqMessageRepository;
-import ru.dmzadorin.demo.db.MessagesRepository;
 
 import javax.sql.DataSource;
 
@@ -39,7 +39,7 @@ public class DbConfig {
     }
 
     @Bean
-    public MessagesRepository messagesRepository(DefaultDSLContext dslContext) {
+    public MessageRepository messagesRepository(DefaultDSLContext dslContext) {
         return new JooqMessageRepository(dslContext);
     }
 }

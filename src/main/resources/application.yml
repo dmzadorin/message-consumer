@@ -2,7 +2,14 @@ server:
   port: 9000
 
 messages:
-  topic: messages-test
+  batchSize: 3
+  maxWaitTimeout: 30
+  maxWaitTimeUnit: SECONDS
+  poolSize: 2
+
+app:
+  enrichedMessagesTopic: enriched-messages
+  payloadMessagesTopic: payload-messages
 
 spring:
   jooq:
@@ -16,23 +23,6 @@ spring:
   kafka:
     consumer:
       bootstrap-servers: localhost:9092
-      group-id: group_id
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.LongDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer2
-      properties:
-        spring:
-          json:
-            value:
-              default:
-                type: ru.dmzadorin.demo.model.MessagesPayload
-            trusted:
-              packages: ru.dmzadorin.demo.model
-          deserializer:
-            value:
-              delegate:
-                class: org.springframework.kafka.support.serializer.JsonDeserializer
+
     producer:
       bootstrap-servers: localhost:9092
-      key-serializer: org.apache.kafka.common.serialization.LongSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer

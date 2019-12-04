@@ -17,7 +17,6 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_LOG_MESSAGE_TIMESTAMP_TYPE: LogAppendTime
-      KAFKA_CREATE_TOPICS: "messages-test:1:1"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
   pgsql:

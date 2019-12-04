@@ -1,14 +1,14 @@
 package ru.dmzadorin.demo.model;
 
 public class Message {
-    private Integer messageId;
+    private Long messageId;
     private String payload;
 
-    public Integer getMessageId() {
+    public Long getMessageId() {
         return messageId;
     }
 
-    public void setMessageId(Integer messageId) {
+    public void setMessageId(Long messageId) {
         this.messageId = messageId;
     }
 

@@ -1,67 +1,70 @@
 package ru.dmzadorin.demo.messaging;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.handler.annotation.Header;
-import ru.dmzadorin.demo.db.MessagesRepository;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ConsumerSeekAware;
+import org.springframework.messaging.handler.annotation.Payload;
 import ru.dmzadorin.demo.model.Message;
 import ru.dmzadorin.demo.model.MessagesPayload;
+import ru.dmzadorin.demo.util.JsonUtil;
 
-import java.util.List;
 import java.util.stream.Collectors;
 
-public class KafkaMessageConsumer {
+public class KafkaMessageConsumer implements ConsumerSeekAware {
     private static final Logger logger = LogManager.getLogger(KafkaMessageConsumer.class);
 
     private final ObjectMapper objectMapper;
-    private final MessagesRepository messagesRepository;
+    private final String enrichedMessagesTopic;
+    private final KafkaTemplate<Long, String> flatMessagesTemplate;
 
     public KafkaMessageConsumer(
             ObjectMapper objectMapper,
-            MessagesRepository messagesRepository
+            String enrichedMessagesTopic,
+            KafkaTemplate<Long, String> flatMessagesTemplate
     ) {
         this.objectMapper = objectMapper;
-        this.messagesRepository = messagesRepository;
+        this.enrichedMessagesTopic = enrichedMessagesTopic;
+        this.flatMessagesTemplate = flatMessagesTemplate;
     }
 
-    @KafkaListener(id = "message-consumer", topics = "${messages.topic}")
-    public void accept(
-            MessagesPayload messages,
-            @Header(KafkaHeaders.RECEIVED_TOPIC) final List<String> topics,
-            @Header(KafkaHeaders.RECEIVED_PARTITION_ID) final List<Integer> partitionIds,
-            @Header(KafkaHeaders.RECEIVED_TIMESTAMP) final List<Long> timestamps,
-            @Header(KafkaHeaders.OFFSET) final List<Long> offsets
+    @KafkaListener(
+            id = "message-payload-consumer",
+            topics = "${app.payloadMessagesTopic}",
+            containerFactory = "payloadMessageContainerFactory"
+    )
+    public void acceptMessagesPayload(
+            @Payload MessagesPayload messages
     ) {
-        logger.info("Accepted new message payload from kafka: " + writeValueAsString(messages));
+        logger.info("Accepted new message payload from kafka: {}",
+                JsonUtil.writeValueAsString(messages, objectMapper)
+        );
         if (messages.getMessages().isEmpty()) {
             logger.warn("Messages payload is empty");
         } else {
-            var filteredMessages = messages.getMessages().stream()
+            var filtered = messages.getMessages().stream()
                     .filter(this::filterMessage)
                     .collect(Collectors.toList());
-            messagesRepository.saveBatch(filteredMessages);
 
+            filtered.forEach(message -> {
+                flatMessagesTemplate.send(
+                        enrichedMessagesTopic,
+                        message.getMessageId(),
+                        JsonUtil.writeValueAsString(message, objectMapper)
+                );
+            });
         }
     }
 
-    private boolean filterMessage(Message m) {
-        boolean correctMessage = m.getMessageId() != null && m.getMessageId() >= 0;
+    private boolean filterMessage(Message message) {
+        var correctMessage = message.getMessageId() != null && message.getMessageId() >= 0;
         if (!correctMessage) {
-            logger.warn("Message with id {} is not saved to db", m.getMessageId());
+            logger.warn(
+                    "Message with id {} is skipped, id is less than 0", message.getMessageId()
+            );
         }
         return correctMessage;
-    }
-
-    private String writeValueAsString(MessagesPayload dto) {
-        try {
-            return objectMapper.writeValueAsString(dto);
-        } catch (JsonProcessingException e) {
-            logger.error("Writing value to JSON failed: ", e);
-            return "failed to convert";
-        }
     }
 }
