@@ -13,14 +13,14 @@ import ru.dmzadorin.demo.util.JsonUtil;
 
 import java.util.stream.Collectors;
 
-public class KafkaMessageConsumer implements ConsumerSeekAware {
-    private static final Logger logger = LogManager.getLogger(KafkaMessageConsumer.class);
+public class PayloadMessageConsumer implements ConsumerSeekAware {
+    private static final Logger logger = LogManager.getLogger(PayloadMessageConsumer.class);
 
     private final ObjectMapper objectMapper;
     private final String enrichedMessagesTopic;
     private final KafkaTemplate<Long, String> flatMessagesTemplate;
 
-    public KafkaMessageConsumer(
+    public PayloadMessageConsumer(
             ObjectMapper objectMapper,
             String enrichedMessagesTopic,
             KafkaTemplate<Long, String> flatMessagesTemplate

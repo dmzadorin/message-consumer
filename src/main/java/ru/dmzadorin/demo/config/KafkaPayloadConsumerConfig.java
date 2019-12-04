@@ -14,7 +14,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.converter.BytesJsonMessageConverter;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer2;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
-import ru.dmzadorin.demo.messaging.KafkaMessageConsumer;
+import ru.dmzadorin.demo.messaging.PayloadMessageConsumer;
 import ru.dmzadorin.demo.model.MessagesPayload;
 
 import java.util.HashMap;
@@ -33,11 +33,11 @@ public class KafkaPayloadConsumerConfig {
     private BytesJsonMessageConverter messageConverter;
 
     @Bean
-    public KafkaMessageConsumer kafkaMessageConsumer(
+    public PayloadMessageConsumer kafkaMessageConsumer(
             ObjectMapper mapper,
             KafkaTemplate<Long, String> kafkaTemplate
     ) {
-        return new KafkaMessageConsumer(mapper, enrichedMessagesTopic, kafkaTemplate);
+        return new PayloadMessageConsumer(mapper, enrichedMessagesTopic, kafkaTemplate);
     }
 
     @Bean
