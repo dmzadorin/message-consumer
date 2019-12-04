@@ -60,7 +60,7 @@ public class MessageServiceImpl implements MessageService {
 
         var messagesSize = messageQueue.size();
         if (messagesSize >= batchSize) {
-            logger.info("Message queue size ({}) is greater than batch size ({}), " +
+            logger.info("Message queue size ({}) is greater than or equal to batch size ({}), " +
                     "running save to database", messagesSize, batchSize
             );
             executorService.submit(this::collectMessages);
@@ -71,10 +71,13 @@ public class MessageServiceImpl implements MessageService {
         logger.info("Collecting messages from message queue");
         var messages = new ArrayList<EnrichedMessage>(messageQueue.size());
         messageQueue.drainTo(messages);
-        logger.info("Got {} messages from queue, saving to db", messages.size());
-        if (!messages.isEmpty()) {
-                messageRepository.saveBatch(messages);
-                logger.info("Batch with {} messages successfully saved to db", messages.size());
+
+        if (messages.isEmpty()) {
+            logger.debug("Message queue is empty");
+        } else {
+            logger.info("Got {} messages from queue, saving to db", messages.size());
+            messageRepository.saveBatch(messages);
+            logger.info("Batch with {} messages successfully saved to db", messages.size());
         }
     }
 }

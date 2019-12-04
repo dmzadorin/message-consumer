@@ -18,12 +18,12 @@ public class PayloadMessageConsumer implements ConsumerSeekAware {
 
     private final ObjectMapper objectMapper;
     private final String enrichedMessagesTopic;
-    private final KafkaTemplate<Long, String> enrichedMessagesTemplate;
+    private final KafkaTemplate<Long, Message> enrichedMessagesTemplate;
 
     public PayloadMessageConsumer(
             ObjectMapper objectMapper,
             String enrichedMessagesTopic,
-            KafkaTemplate<Long, String> enrichedMessagesTemplate
+            KafkaTemplate<Long, Message> enrichedMessagesTemplate
     ) {
         this.objectMapper = objectMapper;
         this.enrichedMessagesTopic = enrichedMessagesTopic;
@@ -48,13 +48,12 @@ public class PayloadMessageConsumer implements ConsumerSeekAware {
                     .filter(this::filterMessage)
                     .collect(Collectors.toList());
 
-            filtered.forEach(message -> {
-                enrichedMessagesTemplate.send(
-                        enrichedMessagesTopic,
-                        message.getMessageId(),
-                        JsonUtil.writeValueAsString(message, objectMapper)
-                );
-            });
+            filtered.forEach(message ->
+                    enrichedMessagesTemplate.send(
+                            enrichedMessagesTopic,
+                            message.getMessageId(),
+                            message
+                    ));
         }
     }
 

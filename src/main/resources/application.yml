@@ -2,7 +2,7 @@ server:
   port: 9000
 
 messages:
-  batchSize: 3
+  batchSize: 10
   maxWaitTimeout: 30
   maxWaitTimeUnit: SECONDS
   poolSize: 2

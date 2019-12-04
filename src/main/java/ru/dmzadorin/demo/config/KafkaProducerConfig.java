@@ -9,6 +9,8 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import ru.dmzadorin.demo.model.Message;
+import ru.dmzadorin.demo.model.MessagesPayload;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,14 +32,26 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public ProducerFactory<Long, String> producerFactory() {
-        final DefaultKafkaProducerFactory<Long, String> factory =
+    public ProducerFactory<Long, Message> producerFactory() {
+        final DefaultKafkaProducerFactory<Long, Message> factory =
                 new DefaultKafkaProducerFactory<>(producerConfigs());
         return factory;
     }
 
     @Bean
-    public KafkaTemplate<Long, String> kafkaTemplate() {
+    public KafkaTemplate<Long, Message> messageKafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
+    }
+
+    @Bean
+    public ProducerFactory<Long, MessagesPayload> payloadFactory(){
+        final DefaultKafkaProducerFactory<Long, MessagesPayload> factory =
+                new DefaultKafkaProducerFactory<>(producerConfigs());
+        return factory;
+    }
+
+    @Bean
+    public KafkaTemplate<Long, MessagesPayload> payloadTemplate() {
+        return new KafkaTemplate<>(payloadFactory());
     }
 }
