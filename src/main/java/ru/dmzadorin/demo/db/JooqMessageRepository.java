@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
 import org.jooq.InsertSetMoreStep;
 import org.jooq.impl.DSL;
-import org.postgresql.translation.messages_bg;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.NonTransientDataAccessResourceException;
 import ru.dmzadorin.demo.db.jooq.tables.Message;
