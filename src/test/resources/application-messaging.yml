@@ -1,0 +1,16 @@
+
+messages:
+  batchSize: 10
+  maxWaitTimeout: 2
+  maxWaitTimeUnit: SECONDS
+  poolSize: 2
+
+app:
+  enrichedMessagesTopic: enriched-messages
+  enrichedMessagesPartitions: 1
+  payloadMessagesTopic: payload-messages
+  concurrentListeners: 1
+
+spring:
+  kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}

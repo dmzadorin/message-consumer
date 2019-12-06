@@ -1,0 +1,24 @@
+messages:
+  batchSize: 10
+  maxWaitTimeout: 2
+  maxWaitTimeUnit: SECONDS
+  poolSize: 2
+
+app:
+  enrichedMessagesTopic: enriched-messages
+  enrichedMessagesPartitions: 1
+  payloadMessagesTopic: payload-messages
+  concurrentListeners: 1
+
+
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:11.6://localhost:5432/app
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+    username: app
+    password: app
+
+  flyway:
+    driver: org.testcontainers.jdbc.ContainerDatabaseDriver
+  jooq:
+    sql-dialect: POSTGRES

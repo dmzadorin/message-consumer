@@ -1,0 +1,5 @@
+spring:
+  flyway:
+    driver: org.h2.Driver
+  jooq:
+    sql-dialect: H2
