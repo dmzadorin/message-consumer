@@ -3,12 +3,13 @@ package ru.dmzadorin.demo.db;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jooq.DSLContext;
-import org.jooq.InsertSetMoreStep;
+import org.jooq.InsertReturningStep;
 import org.jooq.impl.DSL;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.NonTransientDataAccessResourceException;
 import ru.dmzadorin.demo.db.jooq.tables.Message;
 import ru.dmzadorin.demo.db.jooq.tables.records.MessageRecord;
+import ru.dmzadorin.demo.model.DbTemporaryUnavailable;
 import ru.dmzadorin.demo.model.EnrichedMessage;
 
 import java.util.Collection;
@@ -36,6 +37,7 @@ public class JooqMessageRepository implements MessageRepository {
             logger.debug("Batch with size {} successfully saved", messages.size());
         } catch (NonTransientDataAccessResourceException ex) {
             logger.error("Target database is unavailable", ex);
+            throw new DbTemporaryUnavailable(ex);
         } catch (DataAccessException ex) {
             logger.error("Failed to save messages batch, cause: {}", ex.toString());
         }
@@ -54,13 +56,13 @@ public class JooqMessageRepository implements MessageRepository {
         }
     }
 
-    private InsertSetMoreStep<MessageRecord> prepareInsert(EnrichedMessage message) {
-        return dsl.insertInto(MESSAGE_TABLE)
-                .set(MESSAGE_TABLE.MESSAGE_ID, message.getMessageId())
-                .set(MESSAGE_TABLE.PAYLOAD, message.getPayload())
-                .set(MESSAGE_TABLE.TIMESTAMP, DSL.currentTimestamp())
-                .set(MESSAGE_TABLE.KAFKA_PARTITION, message.getPartition())
-                .set(MESSAGE_TABLE.KAFKA_OFFSET, message.getOffset())
-                ;
+    private InsertReturningStep<MessageRecord> prepareInsert(EnrichedMessage message) {
+        return dsl.insertInto(MESSAGE_TABLE).values(
+                message.getMessageId(),
+                message.getPayload(),
+                DSL.currentTimestamp(),
+                message.getPartition(),
+                message.getOffset()
+        ).onDuplicateKeyIgnore();
     }
 }

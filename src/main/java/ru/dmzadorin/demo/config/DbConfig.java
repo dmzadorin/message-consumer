@@ -18,8 +18,11 @@ import javax.sql.DataSource;
 @Configuration
 public class DbConfig {
 
-    @Autowired
-    private DataSource dataSource;
+    private final DataSource dataSource;
+
+    public DbConfig(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
     @Bean
     public DataSourceConnectionProvider connectionProvider() {

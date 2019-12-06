@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import ru.dmzadorin.demo.db.MessageRepository;
+import ru.dmzadorin.demo.messaging.PartitionOffsetRewinder;
 import ru.dmzadorin.demo.service.MessageService;
 import ru.dmzadorin.demo.service.MessageServiceImpl;
 
@@ -24,13 +25,17 @@ public class ServiceConfig {
             ScheduledExecutorService messageScheduledExecutor
     ) {
         return new MessageServiceImpl(
-                messageRepository, batchSize, waitTimeout, timeUnit, messageScheduledExecutor
+                messageRepository,
+                batchSize,
+                waitTimeout,
+                timeUnit,
+                messageScheduledExecutor
         );
     }
 
     @Bean
     ScheduledExecutorService messageScheduledExecutor(@Value("${messages.poolSize}") int poolSize) {
-        var threadFactory = new CustomizableThreadFactory("message-poller-");
+        var threadFactory = new CustomizableThreadFactory("queue-poller-");
         return Executors.newScheduledThreadPool(poolSize, threadFactory);
     }
 }

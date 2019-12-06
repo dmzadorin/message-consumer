@@ -61,9 +61,8 @@ public class KafkaEnrichedMessagesConsumerConfig {
 
     @Bean
     public EnrichedMessageConsumer enrichedMessagesConsumer(
-            ObjectMapper mapper,
-            MessageService messageService
+            ObjectMapper mapper
     ) {
-        return new EnrichedMessageConsumer(mapper, enrichedMessagesTopic, messageService);
+        return new EnrichedMessageConsumer(mapper, enrichedMessagesTopic);
     }
 }

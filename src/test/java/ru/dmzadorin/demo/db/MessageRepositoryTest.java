@@ -13,11 +13,7 @@ import org.springframework.boot.test.autoconfigure.jooq.JooqTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.context.ActiveProfiles;
 import ru.dmzadorin.demo.config.DbConfig;
 import ru.dmzadorin.demo.db.jooq.tables.Message;
 import ru.dmzadorin.demo.model.EnrichedMessage;
@@ -28,6 +24,7 @@ import java.util.stream.LongStream;
 
 @Import(DbConfig.class)
 @JooqTest
+@ActiveProfiles("db")
 @AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.H2)
 public class MessageRepositoryTest {
 
@@ -56,7 +53,7 @@ public class MessageRepositoryTest {
     }
 
     @Test
-    public void testSavingDuplicates() {
+    public void testSavingDuplicatesDoesNotPropagateException() {
         var messages = List.of(
                 new EnrichedMessage(0L, "Payload 0", 0, 0),
                 new EnrichedMessage(1L, "Payload 1", 0, 1),
