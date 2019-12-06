@@ -43,7 +43,7 @@ public class MessageServiceImpl implements MessageService {
         this.messageQueue = new LinkedBlockingQueue<>();
         this.queueSynchronizer = new ReentrantLock();
         executorService.scheduleWithFixedDelay(
-                this::collectMessages, waitTimeout, waitTimeout, timeUnit
+                this::collectMessages, 0L, waitTimeout, timeUnit
         );
     }
 
