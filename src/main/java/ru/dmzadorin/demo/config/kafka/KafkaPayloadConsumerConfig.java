@@ -1,4 +1,4 @@
-package ru.dmzadorin.demo.config;
+package ru.dmzadorin.demo.config.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -16,17 +16,18 @@ import ru.dmzadorin.demo.messaging.PayloadMessageConsumer;
 import ru.dmzadorin.demo.model.Message;
 import ru.dmzadorin.demo.model.MessagesPayload;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 public class KafkaPayloadConsumerConfig {
 
-    @Value("${spring.kafka.consumer.bootstrap-servers}")
-    private String kafkaServer;
-
     @Value("${app.enrichedMessagesTopic}")
     private String enrichedMessagesTopic;
+
+    @Resource(name = "commonConsumerFactoryProperties")
+    private Map<String, Object> commonProperties;
 
     @Bean
     public PayloadMessageConsumer kafkaMessageConsumer(
@@ -51,11 +52,7 @@ public class KafkaPayloadConsumerConfig {
 
     @Bean
     public Map<String, Object> payloadMessagesConsumerConfigs() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer2.class);
-        props.put(ErrorHandlingDeserializer2.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
+        Map<String, Object> props = new HashMap<>(commonProperties);
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, MessagesPayload.class);
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 

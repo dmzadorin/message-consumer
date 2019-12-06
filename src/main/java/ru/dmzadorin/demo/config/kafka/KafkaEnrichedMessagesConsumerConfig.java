@@ -1,8 +1,10 @@
-package ru.dmzadorin.demo.config;
+package ru.dmzadorin.demo.config.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.LongDeserializer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,23 +18,30 @@ import ru.dmzadorin.demo.messaging.EnrichedMessageConsumer;
 import ru.dmzadorin.demo.model.Message;
 import ru.dmzadorin.demo.service.MessageService;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
 @Configuration
 public class KafkaEnrichedMessagesConsumerConfig {
 
-    @Value("${spring.kafka.consumer.bootstrap-servers}")
-    private String kafkaServer;
-
     @Value("${app.enrichedMessagesTopic}")
     private String enrichedMessagesTopic;
 
+    @Value("${app.concurrentListeners}")
+    private int concurrentListeners;
+
+    @Resource(name = "commonConsumerFactoryProperties")
+    private Map<String, Object> commonProperties;
+
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<Long, Message> enrichedMessageContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<Long, Message> enrichedMessageContainerFactory(
+            ConsumerFactory<Long, Message> batchConsumerFactory
+    ) {
         ConcurrentKafkaListenerContainerFactory<Long, Message> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(batchConsumerFactory());
+        factory.setConsumerFactory(batchConsumerFactory);
+        factory.setConcurrency(concurrentListeners);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         factory.setBatchListener(true);
         return factory;
@@ -45,11 +54,7 @@ public class KafkaEnrichedMessagesConsumerConfig {
 
     @Bean
     public Map<String, Object> enrichedMessageConsumerConfigs() {
-        Map<String, Object> props = new HashMap<>();
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer2.class);
-        props.put(ErrorHandlingDeserializer2.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
+        Map<String, Object> props = new HashMap<>(commonProperties);
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, Message.class);
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
