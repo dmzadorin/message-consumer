@@ -1,8 +1,7 @@
 package ru.dmzadorin.demo;
 
-import org.hamcrest.Matchers;
+import org.assertj.core.api.Assertions;
 import org.jooq.DSLContext;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,7 +87,10 @@ public class End2EndTest {
         await().atMost(Duration.ofSeconds(10))
                 .with()
                 .pollInterval(Duration.ofSeconds(1))
-                .until(() -> messageRepository.getMessages(), Matchers.equalTo(expectedMessages));
+                .untilAsserted(() ->
+                        Assertions.assertThat(messageRepository.getMessages())
+                                .containsExactlyInAnyOrderElementsOf(expectedMessages)
+                );
         assertMessageIds(expectedMessages);
     }
 
@@ -101,7 +103,7 @@ public class End2EndTest {
                                 record.getKafkaPartition(),
                                 record.getKafkaOffset())
                 );
-        Assertions.assertEquals(expected, actualMessages);
+        Assertions.assertThat(expected).containsExactlyInAnyOrderElementsOf(actualMessages);
     }
 
 

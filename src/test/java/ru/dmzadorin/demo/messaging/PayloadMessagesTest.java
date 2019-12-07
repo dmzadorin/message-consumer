@@ -154,13 +154,13 @@ public class PayloadMessagesTest {
         // would be called second time
 
         var actualMessages = new CopyOnWriteArrayList<Message>();
-        doThrow(DbTemporaryUnavailable.class)
+        var dbEx = new DbTemporaryUnavailable(null);
+        doThrow(dbEx)
                 .doAnswer(invocation -> {
                     List<EnrichedMessage> messages = invocation.getArgument(0);
                     var plainMessages = messages.stream().map(m ->
                             buildMessage(m.getMessageId(), m.getPayload())
                     ).collect(Collectors.toList());
-                    System.out.println("Plain messages: " + plainMessages.toString());
                     actualMessages.addAll(plainMessages);
                     return null;
                 }).when(messageRepository).saveBatch(anyList());
@@ -171,7 +171,7 @@ public class PayloadMessagesTest {
                 .collect(Collectors.toList());
         payload.setMessages(expectedMessages);
 
-        sendAndVerify(payload, actualMessages, Collections.emptyList());
+        sendAndVerify(payload, actualMessages, expectedMessages);
     }
 
     private void sendAndVerify(
@@ -194,7 +194,7 @@ public class PayloadMessagesTest {
                 .pollInterval(Duration.ofSeconds(1))
                 .untilAsserted(() ->
                         Assertions.assertThat(actualMessages)
-                                .containsExactlyInAnyOrderElementsOf(expectedMessages)
+                        .containsExactlyInAnyOrderElementsOf(expectedMessages)
                 );
     }
 
