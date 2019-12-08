@@ -1,6 +1,7 @@
 package ru.dmzadorin.demo;
 
 import org.assertj.core.api.Assertions;
+import org.jetbrains.annotations.NotNull;
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,11 +42,8 @@ public class End2EndTest {
     @Value("${app.payloadMessagesTopic}")
     private String payloadMessagesTopic;
 
-    @Value("${spring.datasource.username}")
-    private String dbUser;
-
-    @Value("${spring.datasource.username}")
-    private String dbPassword;
+    @Value("${messages.batchSize}")
+    private int batchSize;
 
     @Autowired
     private KafkaTemplate<Long, MessagesPayload> kafkaTemplate;
@@ -70,39 +68,28 @@ public class End2EndTest {
     @Test
     void testPublishEnd2End() {
         var payload = new MessagesPayload();
-        final var messages = LongStream.range(0, 3)
-                .mapToObj(i -> {
-                    final var message = new Message();
-                    message.setMessageId(i);
-                    message.setPayload("Payload " + i);
-                    return message;
-                }).collect(Collectors.toList());
+        int messagesCount = batchSize * 3;
+        final var messages = LongStream.range(0, messagesCount)
+                .mapToObj(i -> toPlainMessage(i, "Payload " + i))
+                .collect(Collectors.toList());
+
         payload.setMessages(messages);
         kafkaTemplate.send(payloadMessagesTopic, payload);
 
-        var expectedMessages = LongStream.range(0, 3)
-                .mapToObj(i -> new EnrichedMessage(i, "Payload " + i, 0, i))
-                .collect(Collectors.toList());
 
         await().atMost(Duration.ofSeconds(10))
                 .with()
                 .pollInterval(Duration.ofSeconds(1))
                 .untilAsserted(() ->
-                        Assertions.assertThat(messageRepository.getMessages())
-                                .containsExactlyInAnyOrderElementsOf(expectedMessages)
+                        Assertions.assertThat(messageRepository.getPlainMessages())
+                                .containsExactlyInAnyOrderElementsOf(messages)
                 );
-        assertMessageIds(expectedMessages);
+        assertMessagesInDb(messages);
     }
 
-    private void assertMessageIds(List<EnrichedMessage> expected) {
-        List<EnrichedMessage> actualMessages = dsl.selectFrom(MESSAGE_TABLE)
-                .fetch(record ->
-                        new EnrichedMessage(
-                                record.getMessageId(),
-                                record.getPayload(),
-                                record.getKafkaPartition(),
-                                record.getKafkaOffset())
-                );
+    private void assertMessagesInDb(List<Message> expected) {
+        List<Message> actualMessages = dsl.selectFrom(MESSAGE_TABLE)
+                .fetch(record -> toPlainMessage(record.getMessageId(), record.getPayload()));
         Assertions.assertThat(expected).containsExactlyInAnyOrderElementsOf(actualMessages);
     }
 
@@ -125,24 +112,23 @@ public class End2EndTest {
             );
             values.applyTo(configurableApplicationContext);
         }
-
     }
 
     static class MessageRepositoryInterceptor implements MessageRepository {
 
         private final MessageRepository delegate;
 
-        private final List<EnrichedMessage> messages;
+        private final List<Message> plainMessages;
 
         public MessageRepositoryInterceptor(MessageRepository delegate) {
             this.delegate = delegate;
-            this.messages = new CopyOnWriteArrayList<>();
+            this.plainMessages = new CopyOnWriteArrayList<>();
         }
 
         @Override
         public void saveBatch(Collection<EnrichedMessage> messages) {
             delegate.saveBatch(messages);
-            this.messages.addAll(messages);
+            this.plainMessages.addAll(convertMessages(messages));
         }
 
         @Override
@@ -151,12 +137,26 @@ public class End2EndTest {
         }
 
         public void cleanUp() {
-            messages.clear();
+            plainMessages.clear();
         }
 
-        public List<EnrichedMessage> getMessages() {
-            return messages;
+        public List<Message> getPlainMessages() {
+            return plainMessages;
         }
+    }
+
+    private static List<Message> convertMessages(Collection<EnrichedMessage> enrichedMessages) {
+        return enrichedMessages.stream()
+                .map(m -> toPlainMessage(m.getMessageId(), m.getPayload()))
+                .collect(Collectors.toList());
+    }
+
+    @NotNull
+    private static Message toPlainMessage(long messageId, String payload) {
+        var plainMessage = new Message();
+        plainMessage.setMessageId(messageId);
+        plainMessage.setPayload(payload);
+        return plainMessage;
     }
 
     private static KafkaContainer getKafkaContainer() {
