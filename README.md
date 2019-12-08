@@ -6,11 +6,15 @@ In order to start application please execute first
 4. After build in order to run execute java -jar message-consumer.jar 
 5. The following configuration properties are used for message listener
 5.1 app.payloadMessagesTopic - topic name for original messages (aka payload message)
-5.2 app.enrichedMessagesTopic - topic name for transformed messages (e.g. flattened payload message)
-5.3 app.enrichedMessagesPartitions - amount of partitions for enrichedMessagesTopic
-5.4 app.concurrentListeners - amount of topic listeners for enrichedMessagesTopic
-5.5 messages.batchSize - amount of messages to collect before saving to database
-5.6 messages.maxWaitTimeout - timeout before saving messages to db
-5.7 messages.maxWaitTimeUnit - tiomeout unit
+5.2 app.payloadMessagesPartitions - amount of partitions for payloadMessagesTopic
+5.3 app.payloadMessagesListeners - amount of topic listeners for payloadMessagesTopic
+5.4 app.enrichedMessagesTopic - topic name for transformed messages (e.g. flattened payload message)
+5.5 app.enrichedMessagesPartitions - amount of partitions for enrichedMessagesTopic
+5.6 app.enrichedMessagesListeners - amount of topic listeners for enrichedMessagesTopic
+5.7 messages.batchSize - amount of messages to collect before saving to database
+5.8 messages.maxWaitTimeout - timeout before saving messages to db
+5.9 messages.maxWaitTimeUnit - timeout unit
+
+6. Jmeter kafka load script is defined in kafka-messages-test.jmx (need jmeter + https://github.com/GSLabDev/pepper-box)
 
   
