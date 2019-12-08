@@ -30,7 +30,6 @@ import ru.dmzadorin.demo.model.MessagesPayload;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -44,13 +43,13 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = PayloadMessagesTest.Ctx.class)
+@SpringBootTest(classes = SendReceiveMessagingTest.Ctx.class)
 @ActiveProfiles("messaging")
 @AutoConfigureJson
 @EnableKafka
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @EmbeddedKafka(topics = {"${app.payloadMessagesTopic}", "${app.enrichedMessagesTopic}"}, partitions = 1)
-public class PayloadMessagesTest {
+public class SendReceiveMessagingTest {
 
     @Configuration
     @ComponentScan(basePackages = "ru.dmzadorin.demo.config.kafka")
