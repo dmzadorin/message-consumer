@@ -2,7 +2,7 @@ server:
   port: 9000
 
 messages:
-  batchSize: 10
+  batchSize: 100
   maxWaitTimeout: 30
   maxWaitTimeUnit: SECONDS
   poolSize: 2
@@ -12,7 +12,6 @@ app:
   enrichedMessagesPartitions: 3
   payloadMessagesTopic: payload-messages
   concurrentListeners: 3
-
 
 spring:
   jooq:
