@@ -27,6 +27,9 @@ public class KafkaCommonConfig {
     @Value("${app.enrichedMessagesPartitions}")
     private int enrichedMessagesPartitions;
 
+    @Value("${app.payloadMessagesPartitions}")
+    private int payloadMessagesPartitions;
+
     @Bean
     public NewTopic enrichedMessagesTopic() {
         return new NewTopic(enrichedMessagesTopic, enrichedMessagesPartitions, (short) 1);
@@ -34,7 +37,7 @@ public class KafkaCommonConfig {
 
     @Bean
     public NewTopic payloadMessagesTopic() {
-        return new NewTopic(payloadMessagesTopic, 1, (short) 1);
+        return new NewTopic(payloadMessagesTopic, payloadMessagesPartitions, (short) 1);
     }
 
     @Bean

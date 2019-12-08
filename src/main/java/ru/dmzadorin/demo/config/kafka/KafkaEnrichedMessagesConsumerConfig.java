@@ -2,9 +2,6 @@ package ru.dmzadorin.demo.config.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.LongDeserializer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,11 +9,9 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer2;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import ru.dmzadorin.demo.messaging.EnrichedMessageConsumer;
 import ru.dmzadorin.demo.model.Message;
-import ru.dmzadorin.demo.service.MessageService;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -28,8 +23,8 @@ public class KafkaEnrichedMessagesConsumerConfig {
     @Value("${app.enrichedMessagesTopic}")
     private String enrichedMessagesTopic;
 
-    @Value("${app.concurrentListeners}")
-    private int concurrentListeners;
+    @Value("${app.enrichedMessagesListeners}")
+    private int enrichedMessagesListeners;
 
     @Resource(name = "commonConsumerFactoryProperties")
     private Map<String, Object> commonProperties;
@@ -41,7 +36,7 @@ public class KafkaEnrichedMessagesConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<Long, Message> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(batchConsumerFactory);
-        factory.setConcurrency(concurrentListeners);
+        factory.setConcurrency(enrichedMessagesListeners);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
         factory.setBatchListener(true);
         return factory;
@@ -59,7 +54,7 @@ public class KafkaEnrichedMessagesConsumerConfig {
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
 
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "Message-Consumer-Group");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "Enriched-Message-Consumer-Group");
 
         return props;
     }

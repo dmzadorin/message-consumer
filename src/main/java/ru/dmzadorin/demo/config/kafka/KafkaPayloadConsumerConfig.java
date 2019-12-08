@@ -10,6 +10,7 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer2;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import ru.dmzadorin.demo.messaging.PayloadMessageConsumer;
@@ -26,6 +27,9 @@ public class KafkaPayloadConsumerConfig {
     @Value("${app.enrichedMessagesTopic}")
     private String enrichedMessagesTopic;
 
+    @Value("${app.payloadMessagesListeners}")
+    private int payloadMessagesListeners;
+
     @Resource(name = "commonConsumerFactoryProperties")
     private Map<String, Object> commonProperties;
 
@@ -41,7 +45,11 @@ public class KafkaPayloadConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<Long, MessagesPayload> payloadMessageContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<Long, MessagesPayload> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConcurrency(payloadMessagesListeners);
         factory.setConsumerFactory(consumerFactory());
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setBatchListener(true);
+
         return factory;
     }
 
@@ -55,6 +63,9 @@ public class KafkaPayloadConsumerConfig {
         Map<String, Object> props = new HashMap<>(commonProperties);
         props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, MessagesPayload.class);
         props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, "Payload-Message-Consumer-Group");
 
         return props;
     }

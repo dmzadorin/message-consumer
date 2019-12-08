@@ -8,8 +8,10 @@ messages:
 app:
   enrichedMessagesTopic: enriched-messages
   enrichedMessagesPartitions: 1
+  enrichedMessagesListeners: 1
   payloadMessagesTopic: payload-messages
-  concurrentListeners: 1
+  payloadMessagesPartitions: 1
+  payloadMessagesListeners: 1
 
 spring:
   kafka:

@@ -7,8 +7,10 @@ messages:
 app:
   enrichedMessagesTopic: enriched-messages
   enrichedMessagesPartitions: 3
+  enrichedMessagesListeners: 3
   payloadMessagesTopic: payload-messages
-  concurrentListeners: 3
+  payloadMessagesPartitions: 3
+  payloadMessagesListeners: 3
 
 
 spring:
