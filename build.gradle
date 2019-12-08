@@ -32,12 +32,12 @@ dependencies {
     testImplementation 'com.h2database:h2:1.4.199'
     testImplementation 'org.flywaydb:flyway-core:6.1.0'
 
-//Test containers for e2e testing
+    //Test containers for e2e testing
     testImplementation "org.testcontainers:kafka:1.12.3"
     testImplementation "org.testcontainers:postgresql:1.12.3"
     testImplementation "org.testcontainers:junit-jupiter:1.12.3"
 
-//    Asynchronous testing
+    //Asynchronous testing
     testImplementation 'org.awaitility:awaitility:4.0.1'
 }
 
@@ -47,11 +47,6 @@ description = 'message-consumer'
 
 sourceCompatibility = 11
 targetCompatibility = 11
-
-ext.dbDriver = 'org.postgresql.Driver'
-ext.dbUrl = 'jdbc:postgresql://localhost:5432/app'
-ext.dbUsername = 'app'
-ext.dbPassword = 'app'
 
 flyway {
     driver = dbDriver
@@ -97,3 +92,5 @@ tasks.withType(JavaCompile) {
 clean.doFirst {
     delete "${rootDir}/target/"
 }
+
+generateSampleJooqSchemaSource.dependsOn(":flywayMigrate")
