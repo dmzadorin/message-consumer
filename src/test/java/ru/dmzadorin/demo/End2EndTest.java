@@ -13,7 +13,10 @@ import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListenerContainer;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.testcontainers.containers.KafkaContainer;
@@ -42,6 +45,9 @@ public class End2EndTest {
     @Value("${app.payloadMessagesTopic}")
     private String payloadMessagesTopic;
 
+    @Value("${app.payloadMessagesPartitions}")
+    private int payloadMessagesPartitions;
+
     @Value("${messages.batchSize}")
     private int batchSize;
 
@@ -54,6 +60,9 @@ public class End2EndTest {
     @Autowired
     private DSLContext dsl;
 
+    @Autowired
+    private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
+
     @Container
     private static KafkaContainer kafkaContainer = getKafkaContainer();
 
@@ -62,6 +71,11 @@ public class End2EndTest {
 
     @BeforeEach
     public void setup() {
+        // wait until the partitions are assigned
+        for (MessageListenerContainer messageListenerContainer : kafkaListenerEndpointRegistry
+                .getListenerContainers()) {
+            ContainerTestUtils.waitForAssignment(messageListenerContainer, payloadMessagesPartitions);
+        }
         messageRepository.cleanUp();
     }
 
